@@ -37,13 +37,14 @@ The project is split into three distinct modules to simulate a real-world node s
    cd Toy_Blockchain
 
 2. Build the project:
-   bash
+   ```bash
    cargo build --release
 
 
    Running the Node :
-   bash
+   ```bash
    cargo run
+   
 3. Usage:
    Once the node starts, you can:
 
