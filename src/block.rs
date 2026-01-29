@@ -1,8 +1,9 @@
 use sha2::{Sha256,Digest};
 use chrono::Utc;
+use serde::{Deserialize,Serialize};
 
 
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Serialize,Deserialize)]
 
 pub struct Block{
     pub index:u32,
@@ -40,6 +41,9 @@ impl Block {
         while &self.hash[..difficulty] != target{
             self.nonce += 1;
             self.hash = self.calculate_hash();
+             if self.nonce % 1_000_000 == 0 {
+        println!("Tried {} million nonces...", self.nonce / 1_000_000);
+    }
         }
     }
 
