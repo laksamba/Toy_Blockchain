@@ -2,24 +2,28 @@ use sha2::{Sha256,Digest};
 use chrono::Utc;
 use serde::{Deserialize,Serialize};
 
+use crate::transaction::Transaction;
+use std::fmt;
+
 
 #[derive(Debug,Clone,Serialize,Deserialize)]
+
 
 pub struct Block{
     pub index:u32,
     pub timestamp:i64,
-    pub data:String,
+   pub transactions:Vec<Transaction>,
     pub previous_hash:String,
     pub hash:String,
     pub nonce:u64,
 }
 
 impl Block {
-    pub fn new(index:u32,data:String,previous_hash:String) -> Self{
+    pub fn new(index:u32,transactions:Vec<Transaction>,previous_hash:String) -> Self{
         let mut block = Block{
             index,
             timestamp: Utc::now().timestamp(),
-            data,
+            transactions,
             previous_hash,
             hash:String::new(),
             nonce:0,
@@ -29,7 +33,9 @@ impl Block {
     }
 
     pub fn calculate_hash(&self)-> String{
-        let input = format!("{}{}{}{}{}",self.index,self.timestamp,self.data,self.nonce,self.previous_hash);
+        let tx_json = serde_json::to_string(&self.transactions)
+        .expect("failed to serialized transaction");
+        let input = format!("{}{}{}{}{}",self.index,self.timestamp,tx_json,self.nonce,self.previous_hash);
         let mut hasher = Sha256::new();
         hasher.update(input);
         format!("{:X}",hasher.finalize())
@@ -48,4 +54,22 @@ impl Block {
     }
 
 
+}
+impl fmt::Display for Block {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "[Block {}]", self.index)?;
+        writeln!(f, "Hash: {}", self.hash)?;
+        writeln!(f, "Previous Hash: {}", self.previous_hash)?;
+        writeln!(f, "Nonce: {}", self.nonce)?;
+
+        if self.transactions.is_empty() {
+            writeln!(f, "Transactions: []")
+        } else {
+            writeln!(f, "Transactions:")?;
+            for (i, tx) in self.transactions.iter().enumerate() {
+                writeln!(f, "  TX #{}:\n    {}", i + 1, tx)?;
+            }
+            Ok(())
+        }
+    }
 }

@@ -10,3 +10,6 @@ inquire = "0.6"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 rusty-leveldb = "3.0"
+hex = "0.4"
+ed25519-dalek = { version = "2.1", features = ["rand_core"] }
+rand_core = "0.6"

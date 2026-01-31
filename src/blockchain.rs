@@ -1,4 +1,4 @@
-use crate::block::Block;
+use crate::{block::Block, transaction::Transaction};
 use rusty_leveldb::{DB, Options};
 use serde_json; // Ensure this is used for slice conversion
 
@@ -26,7 +26,7 @@ impl Blockchain {
             Some(hash_bytes) => String::from_utf8(hash_bytes).unwrap(),
             None => {
                 println!("No existing blockchain found. Generating Genesis...");
-                let genesis = Block::new(0, "Genesis Block".into(), "0".into());
+                let genesis = Block::new(0, vec![], "0".into());
                 let genesis_hash = genesis.hash.clone();
                 let serialized = serde_json::to_vec(&genesis).unwrap();
 
@@ -41,13 +41,13 @@ impl Blockchain {
         Blockchain { db, last_hash, difficulty }
     }
 
-    pub fn add_block(&mut self, data: String) {
+    pub fn add_block(&mut self, transactions: Vec<Transaction>) {
         // 1. Fetch the tip of the chain to get the previous block's data
         let last_block_bytes = self.db.get(self.last_hash.as_bytes()).expect("Last block hash not found in DB");
         let last_block: Block = serde_json::from_slice(&last_block_bytes).unwrap();
 
         // 2. Create and mine the new block
-        let mut new_block = Block::new(last_block.index + 1, data, self.last_hash.clone());
+        let mut new_block = Block::new(last_block.index + 1, transactions, self.last_hash.clone());
         println!("Mining block {}...", new_block.index);
         new_block.mine(self.difficulty);
         println!("Block Mined! Hash: {}", new_block.hash);
@@ -94,6 +94,19 @@ impl Blockchain {
             db: &mut self.db,
         }
     }
+
+
+    pub fn get_all_blocks(&mut self) -> Vec<Block> {
+    let mut blocks = Vec::new();
+    let mut iter = self.iter();
+
+    while let Some(block) = iter.next() {
+        blocks.push(block);
+    }
+
+    blocks
+}
+
 }
 
 // Standard Iterator implementation
